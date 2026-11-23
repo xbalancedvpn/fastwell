@@ -1,7 +1,7 @@
-/* FastWell account beta — data is local first. Cloud sync requires explicit consent. */
+/* FastFitWell account beta — data is local first. Cloud sync requires explicit consent. */
 (()=>{
 'use strict';
-const B=window.FastWellBridge;if(!B)return;
+const B=window.FastFitWellBridge;if(!B)return;
 const SUPABASE_URL='https://rgdkkswwlglkqeepgear.supabase.co';
 const PUBLISHABLE_KEY='sb_publishable_Pb2FonKDfNGMNsOHAnzeQw_wJEP5FEo';
 const $=id=>document.getElementById(id);
@@ -27,16 +27,16 @@ function setUI(){
  const name=$('fw-account-title'),actions=$('fw-account-actions');
  if(!name)return;
  if(!user){name.textContent='Guest mode';status('Saved on this device only · Offline-ready');actions.innerHTML='<button type="button" data-cloud="open">Sign in / Create account</button>';return;}
- name.textContent='Signed in: '+(user.email||'FastWell account');
+ name.textContent='Signed in: '+(user.email||'FastFitWell account');
  const m=localMeta();
  status(ready?(m.dirty?'Not synced yet · Changes on this device':navigator.onLine?'Cloud sync enabled · Last synced '+(m.syncedAt?new Date(m.syncedAt).toLocaleString('en-PH'):'recently'):'Offline · Changes saved on device'):'Your account data is being prepared');
  actions.innerHTML='<button type="button" data-cloud="sync">Sync now</button><button type="button" data-cloud="signout">Sign out</button>';
 }
-const intro='<h2>FastWell Account</h2><p>Create an account for multi-device access and optional cloud backups. Guest data stays on this device until you choose to upload it.</p>';
+const intro='<h2>FastFitWell Account</h2><p>Create an account for multi-device access and optional cloud backups. Guest data stays on this device until you choose to upload it.</p>';
 function openAuth(mode='login'){
  if(!client){dialog(intro+'<p class="fw-cloud-error">Account service requires an internet connection on first sign in. You can continue as guest.</p><div class="fw-cloud-actions"><button data-cloud="close">Continue as Guest</button></div>');return;}
  const isSignup=mode==='signup',isReset=mode==='reset';
- dialog(intro+'<div class="fw-cloud-notice">Private wellness records are stored with Supabase only after you approve cloud sync. Continue as Guest to use FastWell without an account.</div><form id="fw-auth-form"><label>Email<input id="fw-auth-email" type="email" required autocomplete="email"></label>'+(isReset?'':'<label>Password<input id="fw-auth-password" type="password" required minlength="8" autocomplete="'+(isSignup?'new-password':'current-password')+'"></label>')+
+ dialog(intro+'<div class="fw-cloud-notice">Private wellness records are stored with Supabase only after you approve cloud sync. Continue as Guest to use FastFitWell without an account.</div><form id="fw-auth-form"><label>Email<input id="fw-auth-email" type="email" required autocomplete="email"></label>'+(isReset?'':'<label>Password<input id="fw-auth-password" type="password" required minlength="8" autocomplete="'+(isSignup?'new-password':'current-password')+'"></label>')+
  '<div id="fw-cloud-error" class="fw-cloud-error" role="alert"></div><div class="fw-cloud-actions"><button type="submit" class="primary">'+(isReset?'Send recovery link':isSignup?'Create account':'Sign in')+'</button><button type="button" data-cloud="close">Continue as Guest</button></div></form><div class="fw-cloud-actions">'+(isSignup?'<button data-cloud="login">Already have an account?</button>':'<button data-cloud="signup">Create an account</button>')+(!isSignup&&!isReset?'<button data-cloud="reset">Forgot password?</button>':'')+'</div><p class="smallprint">Do not reuse passwords. We never ask you to share your password in chat.</p>');
  $('fw-auth-form').addEventListener('submit',async e=>{
  e.preventDefault();if(busy)return;setBusy(true);error('');
@@ -45,13 +45,13 @@ function openAuth(mode='login'){
  if(isReset){const {error:err}=await client.auth.resetPasswordForEmail(email,{redirectTo:appUrl});if(err)throw err;dialog('<h2>Check your email</h2><p>If this email has an account, a recovery link has been requested.</p><button data-cloud="close">Continue as Guest</button>');return;}
  const result=isSignup?await client.auth.signUp({email,password,options:{emailRedirectTo:appUrl}}):await client.auth.signInWithPassword({email,password});
  if(result.error)throw result.error;
- if(isSignup&&!result.data.session){dialog('<h2>Verify your email</h2><p>We sent a confirmation email if your address is eligible. Open the confirmation link, then return to FastWell to sign in.</p><button data-cloud="close">Continue as Guest</button>');return;}
+ if(isSignup&&!result.data.session){dialog('<h2>Verify your email</h2><p>We sent a confirmation email if your address is eligible. Open the confirmation link, then return to FastFitWell to sign in.</p><button data-cloud="close">Continue as Guest</button>');return;}
  $('fw-cloud-mask').hidden=true;
  }catch(err){error(err.message||'Unable to authenticate right now.');}finally{setBusy(false);}
  });
 }
 function openRecovery(){
- dialog('<h2>Set a new password</h2><p>Choose a secure new password for your FastWell account.</p><form id="fw-recovery-form"><label>New password<input id="fw-recovery-password" type="password" required minlength="8" autocomplete="new-password"></label><p id="fw-cloud-error" class="fw-cloud-error"></p><div class="fw-cloud-actions"><button type="submit" class="primary">Update password</button></div></form>',true);
+ dialog('<h2>Set a new password</h2><p>Choose a secure new password for your FastFitWell account.</p><form id="fw-recovery-form"><label>New password<input id="fw-recovery-password" type="password" required minlength="8" autocomplete="new-password"></label><p id="fw-cloud-error" class="fw-cloud-error"></p><div class="fw-cloud-actions"><button type="submit" class="primary">Update password</button></div></form>',true);
  $('fw-recovery-form').addEventListener('submit',async e=>{
    e.preventDefault();if(busy)return;setBusy(true);error('');
    const {error:err}=await client.auth.updateUser({password:$('fw-recovery-password').value});
@@ -62,7 +62,7 @@ function openRecovery(){
 function decision(cloud){
  const local=B.getSnapshot(),localExists=hasLocalData(local),cloudExists=cloud&&hasLocalData(cloud.snapshot);
 
- let html='<h2>Choose your FastWell data</h2><p>We found '+(localExists?'records on this device':'no local records')+' and '+(cloudExists?'a cloud backup':'no cloud backup')+'. We will never silently overwrite your personal history.</p>';
+ let html='<h2>Choose your FastFitWell data</h2><p>We found '+(localExists?'records on this device':'no local records')+' and '+(cloudExists?'a cloud backup':'no cloud backup')+'. We will never silently overwrite your personal history.</p>';
  html+='<div class="fw-cloud-notice fw-cloud-warn">Cloud syncing means your fasting, weight, meals and assessment answers are stored in your private account on Supabase. Only approve uploading if you consent.</div>';
  if(cloud)html+='<div class="fw-cloud-actions"><button class="primary" data-cloud="usecloud">Use cloud records'+(localExists?' (replace this device)':'')+'</button></div>';
  if(localExists||!cloud)html+='<div class="fw-cloud-actions"><button data-cloud="upload">'+(localExists?'Upload this device':'Enable cloud sync for new records')+(cloud?' (replace cloud snapshot)':'')+'</button></div>';
@@ -80,7 +80,7 @@ async function activateAccount(nextUser){
  if(!nextUser||!nextUser.id)return;
  if(user?.id===nextUser.id&&initialized)return;
  user=nextUser;initialized=true;ready=false;cloudRev=null;
- window.FastWellAssess?.close?.();B.switchStorage(user.id);setUI();
+ window.FastFitWellAssess?.close?.();B.switchStorage(user.id);setUI();
  try{
  const cloud=await findCloud();if(!user||user.id!==nextUser.id)return;
  const m=localMeta();
@@ -107,7 +107,7 @@ async function approveCloud(){
  if(res.error)throw res.error;
  if(!res.data?.length)throw Error('Cloud data changed on another device. Sign in again and review it before replacing.');
  cloudRev=Number(res.data[0].revision);setMeta({revision:cloudRev,consent:true,dirty:false,syncedAt:Date.now()});
- ready=true;$('fw-cloud-mask').dataset.locked='no';close();setUI();window.FastWellAssess?.openIfNeeded();window.FastWellAssess?.openIfNeeded();
+ ready=true;$('fw-cloud-mask').dataset.locked='no';close();setUI();window.FastFitWellAssess?.openIfNeeded();window.FastFitWellAssess?.openIfNeeded();
  }catch(err){error(err.message||'Could not upload your records.');}finally{setBusy(false);}
 }
 function useCloud(){
@@ -158,7 +158,7 @@ document.addEventListener('click',async e=>{
  const act=c.dataset.cloud;
  if(act==='open'||act==='login'||act==='signup'||act==='reset'){openAuth(act==='open'?'login':act);return;}
  if(act==='close'){close();return;}
- if(act==='localonly'){$('fw-cloud-mask').dataset.locked='no';close();ready=false;setMeta({consent:false});setUI();window.FastWellAssess?.openIfNeeded();return;}
+ if(act==='localonly'){$('fw-cloud-mask').dataset.locked='no';close();ready=false;setMeta({consent:false});setUI();window.FastFitWellAssess?.openIfNeeded();return;}
  if(act==='usecloud'){useCloud();return;}
  if(act==='upload'){await approveCloud();return;}
  if(act==='sync'){if(!ready){try{decision(await findCloud());}catch(err){status('Cannot reach cloud. Your local data is safe.');}}else await sync();return;}
@@ -169,7 +169,7 @@ window.addEventListener('online',()=>{if(user&&ready&&localMeta().dirty)sync();e
 window.addEventListener('offline',setUI);
 const bar=document.createElement('section');bar.className='fw-account-bar';bar.innerHTML='<div><strong id="fw-account-title">Guest mode</strong><p id="fw-account-state">Saved on this device only</p></div><div id="fw-account-actions" class="fw-account-actions"></div>';
 const dash=$('view-today')?.querySelector('.dashboard-grid');if(dash)dash.before(bar);
-const mask=document.createElement('div');mask.id='fw-cloud-mask';mask.className='fw-cloud-mask';mask.hidden=true;mask.innerHTML='<div id="fw-cloud-dialog" class="fw-cloud-dialog" role="dialog" aria-modal="true" aria-label="FastWell account"></div>';document.body.appendChild(mask);
+const mask=document.createElement('div');mask.id='fw-cloud-mask';mask.className='fw-cloud-mask';mask.hidden=true;mask.innerHTML='<div id="fw-cloud-dialog" class="fw-cloud-dialog" role="dialog" aria-modal="true" aria-label="FastFitWell account"></div>';document.body.appendChild(mask);
 const sdk=window.supabase;
 if(sdk?.createClient){
  client=sdk.createClient(SUPABASE_URL,PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
