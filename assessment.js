@@ -18,7 +18,7 @@ function renderPage(){
  const headings=['Your starting point','Your health comes first','Your daily routine','Your usual meals','Your personal starting plan'];
  $('fw-assess-step').textContent='Step '+(page+1)+' of 5';
  $('fw-assess-progress-value').style.width=((page+1)*20)+'%';
- let html='<div class="fw-assess-eyebrow">FASTWELL PERSONAL ASSESSMENT</div><h1>'+headings[page]+'</h1>';
+ let html='<div class="fw-assess-eyebrow">FASTFITWELL PERSONAL ASSESSMENT</div><h1>'+headings[page]+'</h1>';
  if(page===0)html+='<p>Tell us a little about you. We will calculate an adult BMI screening value, not diagnose your health.</p><div class="fw-assess-grid">'+field('name','Name (optional)','text','What should we call you?','maxlength="40"')+field('age','Age (years)','number','e.g. 29','min="1" max="110"')+field('heightCm','Height (cm)','number','e.g. 165','min="80" max="250" step="0.1"')+field('weightKg','Weight (kg)','number','e.g. 72','min="20" max="400" step="0.1"')+'</div><div class="fw-assess-note">Your information stays on this phone and is included in local backups.</div>';
  if(page===1)html+='<p>Fasting is not appropriate for everybody. Tick any that apply. We will not recommend a schedule if medical review may be needed.</p>'+flags.map(([id,label])=>'<label class="fw-assess-flag"><input type="checkbox" data-flag="'+id+'" '+((p.flags||[]).includes(id)?'checked':'')+'><span>'+label+'</span></label>').join('')+select('health','Please confirm your situation',[['unsure','I am unsure / would like medical guidance'],['clear','None of these apply to me'],['review','My health or medicines need review']])+'<div class="fw-assess-inline">Under 20, pregnancy, diabetes medications, eating disorder history or underweight status require individualized guidance rather than automated fasting suggestions.</div>';
  if(page===2)html+='<p>Our suggested meal timing should respect your sleep and work. You can adjust all times later.</p><div class="fw-assess-grid">'+field('sleepAt','Usually asleep by','time')+field('wakeAt','Usually wake up','time')+field('breakfastAt','Breakfast time','time')+field('lunchAt','Lunch time','time')+field('dinnerAt','Dinner time','time')+field('snackAt','Snack time (optional)','time')+select('work','Daily schedule',[['day','Daytime'],['night','Night shift'],['variable','Rotating / variable'],['home','Flexible / home']])+select('exercise','Activity level',[['light','Light'],['moderate','Moderate'],['heavy','Heavy training / physical work']])+'</div>';
@@ -32,7 +32,7 @@ function renderPage(){
  }
  $('fw-assess-form').innerHTML=html;
  $('fw-assess-prev').hidden=page===0;
- $('fw-assess-next').textContent=page===4?'Save assessment & open FastWell':'Continue';
+ $('fw-assess-next').textContent=page===4?'Save assessment & open FastFitWell':'Continue';
  $('fw-assess-error').textContent='';
  $('fw-assess-layer').scrollTop=0;
 }
