@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "FastWell — Your Fasting Companion",
+  "short_name": "FastWell",
+  "description": "Private offline-first fasting, meals, hydration and weight tracker",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f8f8",
+  "theme_color": "#10263d",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
