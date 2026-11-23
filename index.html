@@ -29,6 +29,9 @@
 .app-footer span:last-child{font-size:10px;color:#9aa9a7}
 @media(max-width:790px){.mobile-logo{font-size:18px;letter-spacing:-1px}.app-footer{padding-bottom:calc(95px + env(safe-area-inset-bottom))}}
 @media(max-width:640px){.top-date{display:none}}
+.action-btn.needs-review{background:#e4f3ed;color:#0e514c;border-color:#d2e5db;box-shadow:none}
+.action-btn.needs-review:hover{background:#f4fcf8}
+.action-hint{font-size:11px;line-height:1.7}
 </style>
   <title>FastFitWell — Personalized Wellness & Fasting</title>
   <link rel="manifest" href="./manifest.webmanifest">
@@ -241,30 +244,32 @@
   function renderTimer(){
     const active=state.activeFast,now=Date.now(),goal=active?active.goalHours:state.planHours,elapsed=active?Math.max(0,now-active.start):0,goalMs=goal*3600000;
     const achieved=active && elapsed>=goalMs;
+    const eligible=canRecommendFast();
+    const needsReview=!active&&!eligible;
     $('fastBadge').className=`fast-badge${active?' active':''}${achieved?' reached':''}`;
-    $('fastBadge').innerHTML=`<span class="tiny-dot"></span> ${active?(achieved?'Goal reached':'Fasting in progress'):'Ready to begin'}`;
+    $('fastBadge').innerHTML=`<span class="tiny-dot"></span> ${active?(achieved?'Goal reached':'Fasting in progress'):needsReview?'Assessment review needed':'Ready to begin'}`;
     $('selectedPlan').textContent=`${goal}:${24-goal}`;
     $('planDescription').textContent=`${goal} hours fasting · ${24-goal} hours eating`;
-    $('timerCaption').textContent=active?(achieved?'YOUR FASTING TIME':'TIME FASTING'):'START WHEN READY';
+    $('timerCaption').textContent=active?(achieved?'YOUR FASTING TIME':'TIME FASTING'):needsReview?'ASSESSMENT REQUIRED':'START WHEN READY';
     $('timerDisplay').textContent=countdown(elapsed);
-    $('timerSubtext').textContent=active?(achieved?'You reached your goal!':'You are doing great'):'Your time starts here';
+    $('timerSubtext').textContent=active?(achieved?'You reached your goal!':'You are doing great'):needsReview?'Review health screening first':'Your time starts here';
     $('startedTime').textContent=active?clock(active.start):'Not started';
     $('targetTime').textContent=active?`${dayName(active.start+goalMs)}, ${clock(active.start+goalMs)}`:'—';
     $('remainingLabel').textContent=achieved?'Time past goal':'Time remaining';
     $('remainingTime').textContent=achieved?shortDuration(elapsed-goalMs):shortDuration(goalMs-elapsed);
     $('fastAction').classList.toggle('is-stop',!!active);
-    $('fastAction').innerHTML=active?`End fasting ${icon('check')}`:`Start fasting ${icon('arrow-right')}`;
+    $('fastAction').innerHTML=active?`End fasting ${icon('check')}`:needsReview?`Review your assessment ${icon('arrow-right')}`:`Start fasting ${icon('arrow-right')}`;
+    $('fastAction').classList.toggle('needs-review',needsReview);
     $('actionHint').textContent=active?'End your fast to save the session in your journal.':'Tap Start when your fasting window begins.';
     const circumference=2*Math.PI*89;
     $('ringProgress').style.strokeDasharray=String(circumference);
     $('ringProgress').style.strokeDashoffset=String(circumference*(1-Math.min(1,elapsed/goalMs)));
     document.querySelectorAll('[data-plan]').forEach(btn=>{const selected=Number(btn.dataset.plan)===state.planHours;btn.classList.toggle('active',selected);btn.setAttribute('aria-pressed',String(selected));});
-    $('planNote').textContent=active?'Changes apply to your next fast':(state.planHours===12?'12:12 is a gentle starting point':'Choose a plan that suits your needs');
-    const eligible=canRecommendFast();
-    $('fastAction').disabled=!eligible&&!active;
+    $('planNote').textContent=active?'Changes apply to your next fast':needsReview?'Plans are paused pending your assessment':(state.planHours===12?'12:12 is a gentle starting point':'Choose a plan that suits your needs');
+    $('fastAction').disabled=false;
     document.querySelectorAll('[data-plan]').forEach(b=>b.disabled=!eligible);
     if(!eligible&&!active){
-      $('actionHint').textContent=state.profile?'Your assessment recommends checking with a healthcare professional before fasting. You can still track meals, water and weight.':'Complete the first-time assessment to choose a fasting plan.';
+      $('actionHint').textContent=!state.profile?'Complete your assessment first. Tap Review your assessment to get started.':state.profile.health==='unsure'?'Your health screening is marked Unsure. Review your answers if this was a mistake, or speak with a healthcare professional before fasting. You can still track meals, water and weight.':'Your assessment identified a reason to pause fasting. Tap Review your assessment to check your answers. If a concern applies, speak with a healthcare professional before fasting. Other trackers remain available.';
     }
   }
   function achieved(fast){return fast.end-fast.start>=fast.goalHours*3600000;}
@@ -351,7 +356,14 @@
   // Main actions and forms
   document.querySelectorAll('[data-view-go]').forEach(button=>button.addEventListener('click',()=>navigate(button.dataset.viewGo)));
   document.querySelectorAll('[data-plan]').forEach(button=>button.addEventListener('click',()=>{if(!canRecommendFast()){toast('Please complete or review your assessment first.');return;}state.planHours=Number(button.dataset.plan);save();renderTimer();toast(state.activeFast?'Plan saved for your next fast.':`${state.planHours}:${24-state.planHours} plan selected.`);}));
-  $('fastAction').addEventListener('click',endOrStartFast);
+  $('fastAction').addEventListener('click',()=>{
+    if(!state.activeFast&&!canRecommendFast()){
+      if(window.FastWellAssess?.openReview)window.FastWellAssess.openReview();
+      else toast('Please review your health assessment before starting.');
+      return;
+    }
+    endOrStartFast();
+  });
   $('waterPlus').addEventListener('click',()=>adjustWater(250));
   $('waterMinus').addEventListener('click',()=>adjustWater(-250));
   $('mealForm').addEventListener('submit',onMealSave);
