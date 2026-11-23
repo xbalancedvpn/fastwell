@@ -1,6 +1,6 @@
--- FastWell dedicated Supabase project only.
+-- FastFitWell dedicated Supabase project only.
 -- Never execute this in a coaching or other existing app database.
--- Run in a NEW FastWell project after its organization/billing is confirmed.
+-- Run in a NEW FastFitWell project after its organization/billing is confirmed.
 -- Public-facing client MUST use only the Supabase publishable key.
 
 begin;
@@ -42,5 +42,5 @@ create policy "fastwell_delete_own"
   to authenticated
   using ((select auth.uid()) = user_id);
 
-comment on table public.fastwell_user_data is 'Per-account private FastWell offline-first user state. Access is scoped to owner via RLS.';
+comment on table public.fastwell_user_data is 'Per-account private FastFitWell offline-first user state. Access is scoped to owner via RLS.';
 commit;
