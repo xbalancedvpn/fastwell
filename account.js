@@ -52,11 +52,11 @@ function openAuth(mode='login'){
 }
 function decision(cloud){
  const local=B.getSnapshot(),localExists=hasLocalData(local),cloudExists=cloud&&hasLocalData(cloud.snapshot);
- if(!cloud&& !localExists){ready=true;cloudRev=null;setUI();window.FastWellAssess?.openIfNeeded();return;}
+
  let html='<h2>Choose your FastWell data</h2><p>We found '+(localExists?'records on this device':'no local records')+' and '+(cloudExists?'a cloud backup':'no cloud backup')+'. We will never silently overwrite your personal history.</p>';
  html+='<div class="fw-cloud-notice fw-cloud-warn">Cloud syncing means your fasting, weight, meals and assessment answers are stored in your private account on Supabase. Only approve uploading if you consent.</div>';
  if(cloud)html+='<div class="fw-cloud-actions"><button class="primary" data-cloud="usecloud">Use cloud records'+(localExists?' (replace this device)':'')+'</button></div>';
- if(localExists)html+='<div class="fw-cloud-actions"><button data-cloud="upload">Upload this device'+(cloud?' (replace cloud snapshot)':'')+'</button></div>';
+ if(localExists||!cloud)html+='<div class="fw-cloud-actions"><button data-cloud="upload">'+(localExists?'Upload this device':'Enable cloud sync for new records')+(cloud?' (replace cloud snapshot)':'')+'</button></div>';
  html+='<div class="fw-cloud-actions"><button data-cloud="localonly">Keep using this device offline (no cloud sync)</button><button data-cloud="signout">Sign out</button></div><p id="fw-cloud-error" class="fw-cloud-error"></p>';
  dialog(html,true);
  $('fw-cloud-mask').dataset.hasCloud=cloud?'yes':'no';
