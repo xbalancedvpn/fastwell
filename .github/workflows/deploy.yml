@@ -1,4 +1,4 @@
-name: Deploy FastWell PWA
+name: Deploy FastFitWell PWA
 on:
   push:
     branches: [main]
