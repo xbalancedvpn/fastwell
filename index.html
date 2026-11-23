@@ -27,6 +27,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <link rel="stylesheet" href="./assessment.css">
+  <link rel="stylesheet" href="./account.css">
 </head>
 <body>
   <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="svg-sprite">
@@ -119,7 +120,7 @@
 /* FastWell: a private, offline-first wellness journal. No third-party services. */
 (() => {
   'use strict';
-  const STORE_KEY = 'fastwell-data-v1';
+  let STORE_KEY = 'fastwell-data-v1';
   const HOURS = [12,14,16,18];
   const MEAL_DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const MEAL_FIELDS=['Breakfast','Lunch','Dinner','Snack'];
@@ -175,7 +176,7 @@
   }
   function load(){try{const raw=localStorage.getItem(STORE_KEY);return raw?normalize(JSON.parse(raw)):blankState();}catch(err){console.warn('Unable to read local storage',err);return blankState();}}
   let state=load();
-  function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));return true;}catch(err){toast('Could not save locally. Try exporting a backup.');console.error('Storage error',err);return false;}}
+  function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));window.dispatchEvent(new Event('fastwell:datachange'));return true;}catch(err){toast('Could not save locally. Try exporting a backup.');console.error('Storage error',err);return false;}}
   function canRecommendFast(){
     const p=state.profile;
     if(!p||p.version!==1||p.health!=='clear'||(p.flags&&p.flags.length))return false;
@@ -185,6 +186,18 @@
   }
   window.FastWellBridge={
     getProfile:()=>state.profile,
+    getSnapshot:()=>JSON.parse(JSON.stringify(state)),
+    getStorageKey:()=>STORE_KEY,
+    switchStorage(userId){
+      if(userId!==null && !/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(String(userId)))throw Error('Invalid user id');
+      STORE_KEY=userId===null?'fastwell-data-v1':'fastwell-account-'+userId;
+      state=load();fillSettingsForm();fillMealPlanForm();renderAll();window.FastWellAssess?.openIfNeeded();
+    },
+    replaceSnapshot(snapshot){
+      if(!snapshot || snapshot.version!==1)throw Error('Invalid FastWell snapshot');
+      state=normalize(snapshot);save();fillSettingsForm();fillMealPlanForm();renderAll();
+      window.FastWellAssess?.openIfNeeded();
+    },
     canRecommendFast,
     applyProfile(profile){
       const next=normalize({...state,profile});
@@ -357,5 +370,6 @@
 
 </script>
 <script defer src="./assessment.js"></script>
+<script defer src="./account.js"></script>
 </body>
 </html>
