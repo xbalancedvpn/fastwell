@@ -1,47 +1,61 @@
-# FastWell — Offline-first fasting companion
+# FastWell — offline-first fasting & wellness companion
 
-**Free. No login. No subscription. No analytics. No backend.**
+**Hosting:** GitHub Pages + GitHub Actions. **Accounts:** optional Supabase Auth (email/password).
+**Data:** guest records on device; signed-in users may explicitly opt into cloud sync.
+**Status:** beta — do not rely on multi-device sync for critical health records until tested.
 
-A mobile-friendly progressive web app for tracking fasting windows, meals, water intake, and weight. This is an original wellness tracker, not affiliated with FitFast.
+## URLs
+
+- Existing GitHub Pages: https://xbalancedvpn.github.io/fastwell/
+- Intended custom domain: https://fastfitwell.xbalanced.net/
+- Supabase project: rgdkkswwlglkqeepgear (dedicated FastFitWell project)
+
+## Domain activation (manual owner settings required)
+
+1. Before switching domains, **export a JSON backup** on the existing site if you
+   have used it. Browser storage is origin-specific and records from
+   `xbalancedvpn.github.io` do not automatically move to `fastfitwell.xbalanced.net`.
+2. Cloudflare DNS: CNAME name `fastfitwell`, target `xbalancedvpn.github.io`, DNS only initially.
+3. GitHub repo **Settings → Pages → Custom domain**: `fastfitwell.xbalanced.net` → Save.
+   The Pages build source is **GitHub Actions**. Do not change it to "Deploy from a branch."
+   A repository `CNAME` file does not configure a custom domain in GitHub Actions mode.
+4. After GitHub DNS checks/certificate complete, enable **Enforce HTTPS**.
+5. Supabase project **Authentication → URL Configuration**:
+   Site URL `https://fastfitwell.xbalanced.net/`.
+   Redirect URL allow list should contain both
+   `https://fastfitwell.xbalanced.net/**` and
+   `https://xbalancedvpn.github.io/fastwell/**` during the transition.
+6. On the custom domain, import your previous JSON backup as needed.
+7. Test guest mode, sign-up, email confirmation, password recovery, sign-in/out,
+   local and cloud data reconciliation, cross-account isolation and offline behavior.
 
 ## Features
 
-- Fasting timer: 12:12, 14:10, 16:8 and 18:6 plans. Every completed or early-ended session is stored locally.
-- Meal journal with meal types, optional notes, dates and a history.
-- Editable seven-day meal planner with Filipino-inspired starter ideas.
-- Water log in 250 ml increments and adjustable daily goal.
-- Weight entries, trend chart, optional goal weight and a session history.
-- Daily streaks, completed goals and 7-day fasting chart.
-- Download JSON backups and import them on another device.
-- Installation support as a mobile PWA via HTTPS, with fully cached assets for offline use after the first visit.
-- No external resources, accounts, ads, tracking or recurring fees.
+- First-time health assessment: age, height, weight, BMI context, safety questions,
+  sleep/wake times, meals, physical activity, eating habits, and goals.
+- Conservative fasting starter suggestions for screened eligible adults.
+- Fasting timer, history, food journal, editable weekly meal planner, hydration
+  and weight tracking.
+- Offline asset caching with a service worker and local record storage.
+- Guest mode, account UI, optional per-account backups with owner-only RLS.
+- JSON export/import backups.
 
-## Run locally
+## How to develop
 
-For a simple **offline HTML file**, use `FastWell-offline.html` (included beside this folder in the delivery). Open it directly on your device or laptop. Whether it stores data across `file://` sessions depends on the browser, so make frequent JSON backups.
+All app files are static and deployed from the repository root through
+`.github/workflows/deploy.yml`. Do not publish secrets in GitHub Pages.
+The Supabase publishable key is intentionally used in browser code; database
+access is protected by Row Level Security. NEVER use a service-role key in
+frontend code.
 
-To test **PWA install and offline caching** locally, serve the files from this folder:
+## Limitations and safety
 
-```sh
-python3 -m http.server 8080
-```
-
-Then open `http://localhost:8080`. The service worker works on localhost or HTTPS, not `file://`.
-
-## Publish online for free with GitHub Pages
-
-1. Create a GitHub repository, for example `fastwell`.
-2. Upload all files from this folder, including `index.html`, `app.js`, `style.css`, `sw.js`, `manifest.webmanifest` and `icons/`.
-3. In GitHub repository **Settings → Pages**, select **Deploy from a branch**, branch **main**, folder **/(root)** and save.
-4. After the site is available over HTTPS, visit it in Chrome on Android and choose **Install app** or **Add to Home screen** from the browser menu.
-5. Open the app online once; then you can use the cached app and log data offline.
-
-## Important limits
-
-- Entries are stored **only on the device/browser where they were entered**. There is **no automatic syncing** across devices; export/import JSON for transfer. Being online does not upload data anywhere.
-- The first visit to the hosted version must be online before offline caching is available.
-- Clearing browser data, changing browsers, or reinstalling may delete records. Back them up regularly.
-- App notifications, background alarms, smartwatch sync, calorie analysis and account login are not included in v1.
-- This is not medical advice. Fasting may be unsafe for some people, including people with certain medical conditions or medicines, pregnant or breastfeeding people, minors, or people with eating disorders. Consult a clinician if unsure.
+- Online account/sync flows are a beta. Multi-device conflicts need explicit
+  review; never assume a record uploaded just because the device is online.
+- Guest data are local to each browser and domain. Export backups before switching.
+- Fasting is optional and not suitable for everyone. BMI is not a clinical
+  suitability test. Users who require medical review must not be given
+  automatic fasting targets.
+- The app is educational and does not replace medical care.
 
 Copyright: original FastWell prototype. No FitFast branding, code or imagery used.
