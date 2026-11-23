@@ -1,7 +1,7 @@
 /* FastFitWell account beta — data is local first. Cloud sync requires explicit consent. */
 (()=>{
 'use strict';
-const B=window.FastFitWellBridge;if(!B)return;
+const B=window.FastWellBridge;if(!B)return;
 const SUPABASE_URL='https://rgdkkswwlglkqeepgear.supabase.co';
 const PUBLISHABLE_KEY='sb_publishable_Pb2FonKDfNGMNsOHAnzeQw_wJEP5FEo';
 const $=id=>document.getElementById(id);
@@ -80,7 +80,7 @@ async function activateAccount(nextUser){
  if(!nextUser||!nextUser.id)return;
  if(user?.id===nextUser.id&&initialized)return;
  user=nextUser;initialized=true;ready=false;cloudRev=null;
- window.FastFitWellAssess?.close?.();B.switchStorage(user.id);setUI();
+ window.FastWellAssess?.close?.();B.switchStorage(user.id);setUI();
  try{
  const cloud=await findCloud();if(!user||user.id!==nextUser.id)return;
  const m=localMeta();
@@ -107,7 +107,7 @@ async function approveCloud(){
  if(res.error)throw res.error;
  if(!res.data?.length)throw Error('Cloud data changed on another device. Sign in again and review it before replacing.');
  cloudRev=Number(res.data[0].revision);setMeta({revision:cloudRev,consent:true,dirty:false,syncedAt:Date.now()});
- ready=true;$('fw-cloud-mask').dataset.locked='no';close();setUI();window.FastFitWellAssess?.openIfNeeded();window.FastFitWellAssess?.openIfNeeded();
+ ready=true;$('fw-cloud-mask').dataset.locked='no';close();setUI();window.FastWellAssess?.openIfNeeded();window.FastWellAssess?.openIfNeeded();
  }catch(err){error(err.message||'Could not upload your records.');}finally{setBusy(false);}
 }
 function useCloud(){
@@ -158,7 +158,7 @@ document.addEventListener('click',async e=>{
  const act=c.dataset.cloud;
  if(act==='open'||act==='login'||act==='signup'||act==='reset'){openAuth(act==='open'?'login':act);return;}
  if(act==='close'){close();return;}
- if(act==='localonly'){$('fw-cloud-mask').dataset.locked='no';close();ready=false;setMeta({consent:false});setUI();window.FastFitWellAssess?.openIfNeeded();return;}
+ if(act==='localonly'){$('fw-cloud-mask').dataset.locked='no';close();ready=false;setMeta({consent:false});setUI();window.FastWellAssess?.openIfNeeded();return;}
  if(act==='usecloud'){useCloud();return;}
  if(act==='upload'){await approveCloud();return;}
  if(act==='sync'){if(!ready){try{decision(await findCloud());}catch(err){status('Cannot reach cloud. Your local data is safe.');}}else await sync();return;}
