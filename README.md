@@ -1,4 +1,6 @@
-# FastWell — offline-first fasting & wellness companion
+# FastFitWell — offline-first fasting & wellness companion
+
+**Official website:** https://fastfitwell.xbalanced.net/
 
 **Hosting:** GitHub Pages + GitHub Actions. **Accounts:** optional Supabase Auth (email/password).
 **Data:** guest records on device; signed-in users may explicitly opt into cloud sync.
@@ -58,4 +60,8 @@ frontend code.
   automatic fasting targets.
 - The app is educational and does not replace medical care.
 
-Copyright: original FastWell prototype. No FitFast branding, code or imagery used.
+©2026 XBALANCED DIGITAL SOLUTIONS
+
+Developed by ELDWIN GASPAR
+
+Original FastFitWell application. No FitFast branding, code or imagery used.
