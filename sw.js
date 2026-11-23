@@ -1,4 +1,4 @@
-const CACHE="fastwell-offline-v4";
+const CACHE="fastwell-offline-v5";
 const SDK="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.86.0/dist/umd/supabase.min.js";
 const ASSETS=["./","./index.html","./manifest.webmanifest","./icon.svg","./assessment.js","./assessment.css","./account.js","./account.css"];
 self.addEventListener("install",event=>event.waitUntil((async()=>{
