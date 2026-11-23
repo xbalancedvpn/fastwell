@@ -50,6 +50,15 @@ function openAuth(mode='login'){
  }catch(err){error(err.message||'Unable to authenticate right now.');}finally{setBusy(false);}
  });
 }
+function openRecovery(){
+ dialog('<h2>Set a new password</h2><p>Choose a secure new password for your FastWell account.</p><form id="fw-recovery-form"><label>New password<input id="fw-recovery-password" type="password" required minlength="8" autocomplete="new-password"></label><p id="fw-cloud-error" class="fw-cloud-error"></p><div class="fw-cloud-actions"><button type="submit" class="primary">Update password</button></div></form>',true);
+ $('fw-recovery-form').addEventListener('submit',async e=>{
+   e.preventDefault();if(busy)return;setBusy(true);error('');
+   const {error:err}=await client.auth.updateUser({password:$('fw-recovery-password').value});
+   if(err){error(err.message);setBusy(false);return;}
+   $('fw-cloud-mask').dataset.locked='no';close();setBusy(false);
+ });
+}
 function decision(cloud){
  const local=B.getSnapshot(),localExists=hasLocalData(local),cloudExists=cloud&&hasLocalData(cloud.snapshot);
 
@@ -136,7 +145,9 @@ function changed(){
  clearTimeout(flushTimer);flushTimer=setTimeout(sync,1800);
 }
 async function signedOut(){
- if(client)await client.auth.signOut();
+ if(user&&localMeta().dirty&&!confirm('You have changes that are not yet synced. They will stay on this device, but will not be available on another phone until you sign back in and sync. Sign out?'))return false;
+ if(client){const {error}=await client.auth.signOut();if(error)throw error;}
+ return true;
 }
 function setGuest(){
  clearTimeout(flushTimer);user=null;initialized=false;ready=false;cloudRev=null;
@@ -151,7 +162,7 @@ document.addEventListener('click',async e=>{
  if(act==='usecloud'){useCloud();return;}
  if(act==='upload'){await approveCloud();return;}
  if(act==='sync'){if(!ready){try{decision(await findCloud());}catch(err){status('Cannot reach cloud. Your local data is safe.');}}else await sync();return;}
- if(act==='signout'){await signedOut();setGuest();$('fw-cloud-mask').dataset.locked='no';close();return;}
+ if(act==='signout'){try{if(await signedOut()){setGuest();$('fw-cloud-mask').dataset.locked='no';close();}}catch(err){error('Sign out failed. Please try again while online.');}return;}
 });
 window.addEventListener('fastwell:datachange',changed);
 window.addEventListener('online',()=>{if(user&&ready&&localMeta().dirty)sync();else setUI();});
@@ -163,6 +174,7 @@ const sdk=window.supabase;
 if(sdk?.createClient){
  client=sdk.createClient(SUPABASE_URL,PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  client.auth.onAuthStateChange((event,session)=>{
+  if(event==='PASSWORD_RECOVERY'){Promise.resolve().then(()=>openRecovery());return;}
   if(event==='SIGNED_OUT'){if(user)setGuest();return;}
   if(session?.user&&!initialized)Promise.resolve().then(()=>activateAccount(session.user));
  });
