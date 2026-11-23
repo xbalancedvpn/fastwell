@@ -1,4 +1,4 @@
-# FastWell — approved online + offline architecture
+# FastFitWell — approved online + offline architecture
 
 **Status (2026-11-23): isolated Supabase project and private table deployed; optional account UI and cloud-sync beta committed to GitHub.**
 Email confirmation/redirects and full end-to-end account and conflict testing are still required. Guest mode remains available.
@@ -49,7 +49,7 @@ Email confirmation/redirects and full end-to-end account and conflict testing ar
 
 ## Infrastructure
 
-- PWA web: current https://xbalancedvpn.github.io/fastwell/; planned custom host https://fastfitwell.xbalanced.net/.
+- PWA web: official https://fastfitwell.xbalanced.net/; legacy GitHub Pages URL https://xbalancedvpn.github.io/fastwell/.
 - Host cutover requires GitHub Settings → Pages → Custom domain (GitHub Actions ignores CNAME files); HTTPS enforcement after certificate approval.
 - Supabase Auth allowed redirect URLs must include both origins during cutover; set Site URL to the custom domain after cutover.
 - Browser localStorage is scoped to an origin; export/import backup to move prior guest data across hosts.
@@ -61,7 +61,7 @@ Email confirmation/redirects and full end-to-end account and conflict testing ar
 ## Implementation sequence
 
 1. User selects the Supabase organization / confirms any charges for a new project.
-2. Provision **FastWell** as a new, isolated project; run `supabase/schema.sql`.
+2. Provision **FastFitWell** as a new, isolated project; run `supabase/schema.sql`.
 3. Verify RLS: owner can CRUD, anonymous and other users cannot read/write.
 4. Configure Supabase Auth email confirmation + allowed redirect URLs.
 5. Add account UI and local-first sync to PWA. Maintain guest access.
