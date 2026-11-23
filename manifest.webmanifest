@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "FastWell — Your Fasting Companion",
-  "short_name": "FastWell",
-  "description": "Private offline-first fasting, meals, hydration and weight tracker",
+  "name": "FastFitWell — Personalized Fasting & Wellness",
+  "short_name": "FastFitWell",
+  "description": "Private, offline-first personalized fasting, meals, hydration and weight companion",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
