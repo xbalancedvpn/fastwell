@@ -1,0 +1,22 @@
+
+/* FastWell account & sync */
+.fw-account-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 16px;padding:14px 17px;background:#fff;border:1px solid #e2eeea;border-radius:14px;color:#174d46}
+.fw-account-bar strong{font-size:13px}.fw-account-bar p{font-size:11px;margin:4px 0 0;color:#71847e;line-height:1.6}
+.fw-account-bar button,.fw-account-actions button{background:#f5fbf8;border:1px solid #cde9df;border-radius:9px;color:#0b8170;padding:9px 12px;font-size:12px;font-weight:750;cursor:pointer}
+.fw-account-actions{display:flex;gap:8px;flex-wrap:wrap}
+.fw-cloud-mask{position:fixed;inset:0;background:#071f30aa;z-index:440;display:flex;align-items:center;justify-content:center;padding:16px}
+.fw-cloud-mask[hidden]{display:none!important}
+.fw-cloud-dialog{width:min(460px,100%);max-height:calc(100dvh - 32px);overflow:auto;border-radius:22px;background:white;padding:26px;box-shadow:0 22px 65px #041b2050}
+.fw-cloud-dialog h2{margin:0 0 8px;font-size:23px}
+.fw-cloud-dialog p{font-size:13px;line-height:1.65;color:#667e77}
+.fw-cloud-dialog label{display:block;font-size:12px;font-weight:700;color:#375952;margin:13px 0 0}
+.fw-cloud-dialog input{display:block;width:100%;min-height:45px;margin:6px 0;border-radius:10px;border:1px solid #cadfd7;padding:10px 12px}
+.fw-cloud-dialog button{border-radius:10px;border:1px solid #b7dbd1;background:#f2faf6;color:#146f62;padding:11px 14px;font-size:12px;font-weight:750;cursor:pointer}
+.fw-cloud-dialog button.primary{background:#08a98e;border-color:#08a98e;color:white}
+.fw-cloud-dialog button:disabled{opacity:.5;cursor:wait}
+.fw-cloud-actions{display:flex;flex-wrap:wrap;gap:10px;margin:17px 0 3px}
+.fw-cloud-error{font-size:12px;color:#a84337;line-height:1.6;margin:10px 0}
+.fw-cloud-notice{background:#eff9f6;color:#3b7065;border-radius:10px;padding:10px 12px;margin-top:12px;line-height:1.65;font-size:12px}
+.fw-cloud-warn{background:#fff8e7;color:#82682b}
+.fw-cloud-dialog .smallprint{font-size:11px;margin-top:15px}
+@media(max-width:550px){.fw-cloud-dialog{padding:21px 17px}.fw-account-bar{align-items:flex-start}.fw-account-actions{width:100%}.fw-account-actions button{flex:1}}
