@@ -71,7 +71,7 @@ async function activateAccount(nextUser){
  if(!nextUser||!nextUser.id)return;
  if(user?.id===nextUser.id&&initialized)return;
  user=nextUser;initialized=true;ready=false;cloudRev=null;
- B.switchStorage(user.id);setUI();
+ window.FastWellAssess?.close?.();B.switchStorage(user.id);setUI();
  try{
  const cloud=await findCloud();if(!user||user.id!==nextUser.id)return;
  const m=localMeta();
