@@ -1,8 +1,7 @@
 # FastWell — approved online + offline architecture
 
-**Status (2026-11-23): design and database schema prepared; cloud authentication is NOT activated.**
-The existing public PWA must continue operating as a local-only/guest app until a separate
-Supabase project is provisioned, reviewed and explicitly configured.
+**Status (2026-11-23): isolated Supabase project and private table deployed; optional account UI and cloud-sync beta committed to GitHub.**
+Email confirmation/redirects and full end-to-end account and conflict testing are still required. Guest mode remains available.
 
 ## User flow
 
@@ -26,8 +25,7 @@ Supabase project is provisioned, reviewed and explicitly configured.
   to avoid blindly overwriting other devices' data.
 - If revision changed or two offline devices edited same records: stop and show a
   **review/merge** flow. Do not silently replace, duplicate or discard history.
-- Guest -> account: compare local and cloud records. Explicit **merge**, **keep cloud**,
-  or **keep local** choices; explain risk of losing changes before taking action.
+- Guest -> account: current beta offers **use cloud** or **upload local** choices (replacement, not a true merge). Export backups before switching; implement safe merge before production.
 - On sign-out: do not expose a prior user's local health information to a new account
   or a guest. Isolate local caches per user, or clear active state after backing up.
 - Backup/export, restore and delete own data must work for signed-in users as well.
@@ -51,9 +49,12 @@ Supabase project is provisioned, reviewed and explicitly configured.
 
 ## Infrastructure
 
-- PWA web: GitHub Pages at https://xbalancedvpn.github.io/fastwell/
-- Database and auth: **new dedicated FastWell Supabase project**, not Coach Kazu.
-- Offline: current service worker + IndexedDB-based persistent records planned.
+- PWA web: current https://xbalancedvpn.github.io/fastwell/; planned custom host https://fastfitwell.xbalanced.net/.
+- Host cutover requires GitHub Settings → Pages → Custom domain (GitHub Actions ignores CNAME files); HTTPS enforcement after certificate approval.
+- Supabase Auth allowed redirect URLs must include both origins during cutover; set Site URL to the custom domain after cutover.
+- Browser localStorage is scoped to an origin; export/import backup to move prior guest data across hosts.
+- Database and auth: dedicated FastFitWell Supabase project `rgdkkswwlglkqeepgear`, not Coach Kazu.
+- Offline: current service worker + localStorage, with IndexedDB-based persistent records planned.
 - Sync UI: online/offline status + last synchronized timestamp + retry button;
   no false 'Synced' state when updates remain locally queued.
 
