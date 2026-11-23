@@ -26,6 +26,7 @@
   <title>FastWell — Offline Version</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="stylesheet" href="./assessment.css">
 </head>
 <body>
   <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="svg-sprite">
@@ -134,7 +135,7 @@
   let chosenMealDay=MEAL_DAYS[(new Date().getDay()+6)%7];
   const $ = (id) => document.getElementById(id);
   const icon = (name) => `<svg class="icon" aria-hidden="true"><use href="#i-${name}"/></svg>`;
-  const blankState = () => ({version:1,planHours:12,activeFast:null,fasts:[],meals:[],weights:[],water:{},mealPlan:{},settings:{name:'',waterGoalMl:2000,goalWeightKg:null}});
+  const blankState = () => ({version:1,planHours:12,activeFast:null,fasts:[],meals:[],weights:[],water:{},mealPlan:{},settings:{name:'',waterGoalMl:2000,goalWeightKg:null},profile:null});
   const finite = (n) => Number.isFinite(Number(n)) ? Number(n) : null;
   const str = (v,max=100) => typeof v === 'string' ? v.slice(0,max) : '';
   const validTime = (v) => typeof v === 'number' && Number.isFinite(v) && v > 0 && v < 4102444800000;
@@ -160,11 +161,47 @@
       const weight=finite(input.settings.goalWeightKg);
       clean.settings.goalWeightKg=weight!==null && weight>=20 && weight<=400 ? weight : null;
     }
+    const p=input.profile;
+    if(p && typeof p==='object' && !Array.isArray(p) && p.version===1){
+      const age=finite(p.age),h=finite(p.heightCm),w=finite(p.weightKg);
+      if(age!==null && age>=1 && age<=110 && h!==null && h>=80 && h<=250 && w!==null && w>=20 && w<=400){
+        const safe={version:1,age,heightCm:h,weightKg:w,health:['clear','review','unsure'].includes(p.health)?p.health:'unsure'};
+        ['name','goal','experience','sleepAt','wakeAt','breakfastAt','lunchAt','dinnerAt','snackAt','work','exercise','breakfastFood','lunchFood','dinnerFood','snackFood','diet','allergies','completedAt'].forEach(k=>safe[k]=str(p[k],200));
+        safe.flags=Array.isArray(p.flags)?p.flags.filter(x=>typeof x==='string').slice(0,10).map(x=>str(x,40)):[];
+        clean.profile=safe;
+      }
+    }
     return clean;
   }
   function load(){try{const raw=localStorage.getItem(STORE_KEY);return raw?normalize(JSON.parse(raw)):blankState();}catch(err){console.warn('Unable to read local storage',err);return blankState();}}
   let state=load();
   function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state));return true;}catch(err){toast('Could not save locally. Try exporting a backup.');console.error('Storage error',err);return false;}}
+  function canRecommendFast(){
+    const p=state.profile;
+    if(!p||p.version!==1||p.health!=='clear'||(p.flags&&p.flags.length))return false;
+    const age=Number(p.age),h=Number(p.heightCm)/100,w=Number(p.weightKg);
+    if(age<20||age>70||!Number.isFinite(h)||h<0.8||!Number.isFinite(w))return false;
+    return w/(h*h)>=18.5;
+  }
+  window.FastWellBridge={
+    getProfile:()=>state.profile,
+    canRecommendFast,
+    applyProfile(profile){
+      const next=normalize({...state,profile});
+      if(!next.profile)throw Error('Invalid assessment data');
+      state=next;
+      if(next.profile.name&&!state.settings.name)state.settings.name=next.profile.name;
+      if(!state.weights.length)state.weights.push({id:id(),when:Date.now(),kg:next.profile.weightKg});
+      if(!Object.keys(state.mealPlan).length){
+        const d=MEAL_DAYS[(new Date().getDay()+6)%7];
+        const p=next.profile;
+        const first={Breakfast:p.breakfastFood||'',Lunch:p.lunchFood||'',Dinner:p.dinnerFood||'',Snack:p.snackFood||''};
+        if(Object.values(first).some(Boolean))state.mealPlan[d]=first;
+      }
+      if(canRecommendFast())state.planHours=12;
+      save();fillSettingsForm();fillMealPlanForm();renderAll();
+    }
+  };
   function id(){return (typeof crypto!=='undefined' && typeof crypto.randomUUID==='function') ? crypto.randomUUID() : `entry-${Date.now()}-${Math.random().toString(36).slice(2)}`;}
   function dayName(t){return new Date(t).toLocaleDateString('en-PH',{weekday:'short'});}
   function shortDate(t){return new Date(t).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});}
@@ -201,7 +238,13 @@
     $('ringProgress').style.strokeDasharray=String(circumference);
     $('ringProgress').style.strokeDashoffset=String(circumference*(1-Math.min(1,elapsed/goalMs)));
     document.querySelectorAll('[data-plan]').forEach(btn=>{const selected=Number(btn.dataset.plan)===state.planHours;btn.classList.toggle('active',selected);btn.setAttribute('aria-pressed',String(selected));});
-    $('planNote').textContent=active?`Changes apply to your next fast`:(state.planHours===12?'12:12 is a gentle starting point':'Choose a plan that suits your needs');
+    $('planNote').textContent=active?'Changes apply to your next fast':(state.planHours===12?'12:12 is a gentle starting point':'Choose a plan that suits your needs');
+    const eligible=canRecommendFast();
+    $('fastAction').disabled=!eligible&&!active;
+    document.querySelectorAll('[data-plan]').forEach(b=>b.disabled=!eligible);
+    if(!eligible&&!active){
+      $('actionHint').textContent=state.profile?'Your assessment recommends checking with a healthcare professional before fasting. You can still track meals, water and weight.':'Complete the first-time assessment to choose a fasting plan.';
+    }
   }
   function achieved(fast){return fast.end-fast.start>=fast.goalHours*3600000;}
   function daysStreak(){
@@ -268,9 +311,10 @@
     $('weightChart').innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 562 165" role="img" aria-label="Your weight history chart">${baseline}${targetLine}${data.length>1?`<polyline points="${polyline}" fill="none" stroke="#23bba1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`:''}${points.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="5.5" fill="#fff" stroke="#23bba1" stroke-width="3"/>`).join('')}${labels}</svg>`;
   }
   function fillSettingsForm(){ $('displayName').value=state.settings.name; $('waterGoal').value=String(state.settings.waterGoalMl);$('goalWeight').value=state.settings.goalWeightKg===null?'':String(state.settings.goalWeightKg);}
-  function renderAll(){updateDates();renderTimer();renderMomentum();renderWater();renderMeals();renderFastHistory();renderMealPlanSummary();renderBars();renderWeights();$('greetingText').textContent=state.settings.name?`Welcome, ${state.settings.name}. Make today your own.`:'Make this routine your own. Start with a comfortable pace.';}
+  function renderAll(){updateDates();renderTimer();renderMomentum();renderWater();renderMeals();renderFastHistory();renderMealPlanSummary();renderBars();renderWeights();$('greetingText').textContent=state.settings.name?`Welcome, ${state.settings.name}. Make today your own.`:'Make this routine your own. Start with a comfortable pace.';window.FastWellAssess?.render();}
   function setConnection(){const online=navigator.onLine;$('connectionChip').classList.toggle('offline',!online);$('connectionText').textContent=online?'Online':'Offline';$('connectionChip').setAttribute('aria-label',online?'Online; all records are saved on this device':'Offline; records remain available on this device');}
   function endOrStartFast(){
+    if(!state.activeFast&&!canRecommendFast()){toast('Fasting guidance is paused. Please review your assessment and consult a healthcare professional if needed.');return;}
     if(!state.activeFast){state.activeFast={start:Date.now(),goalHours:state.planHours};save();renderAll();toast('Fasting timer started. You’ve got this.');return;}
     const f=state.activeFast,now=Date.now(),duration=now-f.start;
     if(duration<60000){if(!confirm('This fast is less than a minute long. End and save it anyway?')) return;}
@@ -281,11 +325,11 @@
   function onWeightSave(e){e.preventDefault();const kg=finite($('weightInput').value);if(kg===null||kg<20||kg>400){toast('Please enter a weight between 20 and 400 kg.');return;}state.weights.push({id:id(),kg,when:Date.now()});save();$('weightInput').value='';renderWeights();toast('Weight entry saved.');}
   function onSettingsSave(e){e.preventDefault();const water=finite($('waterGoal').value),goalRaw=$('goalWeight').value.trim(),goal=goalRaw===''?null:finite(goalRaw);if(water===null||water<250||water>7000){toast('Water goal must be between 250 and 7,000 ml.');return;}if(goalRaw!==''&&(goal===null||goal<20||goal>400)){toast('Weight goal must be between 20 and 400 kg.');return;}state.settings={name:$('displayName').value.trim().slice(0,40),waterGoalMl:Math.round(water),goalWeightKg:goal};save();renderAll();toast('Your preferences were saved.');}
   function downloadBackup(){const json=JSON.stringify(state,null,2);const blob=new Blob([json],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`FastWell-backup-${keyFor(Date.now())}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);toast('Backup downloaded. Keep it somewhere safe.');}
-  async function importBackup(file){if(!file) return;if(file.size>5*1024*1024){toast('Backup file is too large.');return;}try{const input=JSON.parse(await file.text());if(!input || typeof input!=='object' || input.version!==1 || !Array.isArray(input.fasts) || !Array.isArray(input.meals) || !Array.isArray(input.weights)){throw Error('Invalid FastWell backup');}if(!confirm('Importing a backup will REPLACE all fasting, meal, water and weight data currently stored on this device. Continue?')) return;state=normalize(input);save();fillSettingsForm();fillMealPlanForm();renderAll();toast('Backup imported successfully.');}catch(err){console.error(err);toast('Could not import. Select a valid FastWell JSON backup.');}}
+  async function importBackup(file){if(!file) return;if(file.size>5*1024*1024){toast('Backup file is too large.');return;}try{const input=JSON.parse(await file.text());if(!input || typeof input!=='object' || input.version!==1 || !Array.isArray(input.fasts) || !Array.isArray(input.meals) || !Array.isArray(input.weights)){throw Error('Invalid FastWell backup');}if(!confirm('Importing a backup will REPLACE all fasting, meal, water and weight data currently stored on this device. Continue?')) return;state=normalize(input);save();fillSettingsForm();fillMealPlanForm();renderAll();toast('Backup imported successfully.');window.FastWellAssess?.openIfNeeded();}catch(err){console.error(err);toast('Could not import. Select a valid FastWell JSON backup.');}}
   function deleteEntry(type,value){const prop={meal:'meals',weight:'weights',fast:'fasts'}[type];if(!prop) return;if(!confirm(`Delete this ${type==='fast'?'fasting session':type+' entry'}?`))return;state[prop]=state[prop].filter(x=>x.id!==value);save();renderAll();toast('Entry deleted.');}
   // Main actions and forms
   document.querySelectorAll('[data-view-go]').forEach(button=>button.addEventListener('click',()=>navigate(button.dataset.viewGo)));
-  document.querySelectorAll('[data-plan]').forEach(button=>button.addEventListener('click',()=>{state.planHours=Number(button.dataset.plan);save();renderTimer();toast(state.activeFast?'Plan saved for your next fast.':`${state.planHours}:${24-state.planHours} plan selected.`);}));
+  document.querySelectorAll('[data-plan]').forEach(button=>button.addEventListener('click',()=>{if(!canRecommendFast()){toast('Please complete or review your assessment first.');return;}state.planHours=Number(button.dataset.plan);save();renderTimer();toast(state.activeFast?'Plan saved for your next fast.':`${state.planHours}:${24-state.planHours} plan selected.`);}));
   $('fastAction').addEventListener('click',endOrStartFast);
   $('waterPlus').addEventListener('click',()=>adjustWater(250));
   $('waterMinus').addEventListener('click',()=>adjustWater(-250));
@@ -298,7 +342,7 @@
   $('exportBtn').addEventListener('click',downloadBackup);
   $('importBtn').addEventListener('click',()=>$('importFile').click());
   $('importFile').addEventListener('change',async e=>{await importBackup(e.target.files[0]);e.target.value='';});
-  $('clearBtn').addEventListener('click',()=>{if(!confirm('Permanently delete all data stored in FastWell on this device? Export a backup first if you might need it later.'))return;if(!confirm('Are you sure? This cannot be undone without a backup.'))return;state=blankState();save();fillSettingsForm();fillMealPlanForm();renderAll();toast('All locally saved records were deleted.');});
+  $('clearBtn').addEventListener('click',()=>{if(!confirm('Permanently delete all data stored in FastWell on this device? Export a backup first if you might need it later.'))return;if(!confirm('Are you sure? This cannot be undone without a backup.'))return;state=blankState();save();fillSettingsForm();fillMealPlanForm();renderAll();toast('All locally saved records were deleted.');window.FastWellAssess?.openIfNeeded();});
   document.addEventListener('click',e=>{const b=e.target.closest('[data-delete-meal],[data-delete-fast],[data-delete-weight]');if(!b)return;for(const type of ['meal','fast','weight']){const val=b.getAttribute(`data-delete-${type}`);if(val!==null){deleteEntry(type,val);break;}}});
   window.addEventListener('hashchange',()=>setView(location.hash.slice(1)));
   window.addEventListener('online',setConnection);window.addEventListener('offline',setConnection);
@@ -312,5 +356,6 @@
 })();
 
 </script>
+<script defer src="./assessment.js"></script>
 </body>
 </html>
