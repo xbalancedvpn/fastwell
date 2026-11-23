@@ -191,7 +191,7 @@
     switchStorage(userId){
       if(userId!==null && !/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(String(userId)))throw Error('Invalid user id');
       STORE_KEY=userId===null?'fastwell-data-v1':'fastwell-account-'+userId;
-      state=load();fillSettingsForm();fillMealPlanForm();renderAll();window.FastWellAssess?.openIfNeeded();
+      state=load();fillSettingsForm();fillMealPlanForm();renderAll();
     },
     replaceSnapshot(snapshot){
       if(!snapshot || snapshot.version!==1)throw Error('Invalid FastWell snapshot');
