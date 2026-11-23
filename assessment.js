@@ -67,5 +67,5 @@ const settings=$('settingsForm');if(settings){const panel=document.createElement
 $('fw-assess-next').addEventListener('click',()=>{collect();if(!valid())return;if(page<4){page++;renderPage();return;}const saved=Object.assign({},p,{version:1,age:Number(p.age),heightCm:Number(p.heightCm),weightKg:Number(p.weightKg),completedAt:new Date().toISOString()});try{B.applyProfile(saved);close();renderSummary();}catch(e){$('fw-assess-error').textContent='Unable to save assessment. Please review your details.';}});
 $('fw-assess-prev').addEventListener('click',()=>{collect();if(page>0){page--;renderPage();}});
 document.addEventListener('click',e=>{if(e.target.closest('[data-fw-retake]'))open(true);});
-window.FastWellAssess={openIfNeeded:()=>open(false),render:renderSummary};renderSummary();open(false);
+window.FastWellAssess={openIfNeeded:()=>open(false),render:renderSummary,close};renderSummary();open(false);
 })();
