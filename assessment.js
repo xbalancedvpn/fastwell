@@ -54,7 +54,7 @@ function open(force=false){
 }
 function close(){$('fw-assess-layer').hidden=true;document.body.style.overflow='';}
 function renderSummary(){
- const prof=B.getProfile();if(!prof)return;
+ const prof=B.getProfile();if(!prof){const box=$('fw-assess-today');if(box)box.innerHTML='';return;}
  const b=Number(prof.weightKg)/(Number(prof.heightCm)/100)**2;
  const box=$('fw-assess-today');if(!box)return;
  box.innerHTML='<div class="fw-assess-status">YOUR ASSESSMENT</div><h2>'+(B.canRecommendFast()?'Suggested starter: 12:12':'Regular-meal guidance; fasting paused')+'</h2><p>Height '+escapeText(prof.heightCm)+' cm · Weight '+escapeText(prof.weightKg)+' kg · BMI '+b.toFixed(1)+'</p><p>'+(B.canRecommendFast()?'Begin with 2 weeks at 12:12, if comfortable. No forced increase.':'Review suitability with a clinician before fasting. Other trackers remain available.')+'</p><button type="button" data-fw-retake>Edit / review assessment</button>';
