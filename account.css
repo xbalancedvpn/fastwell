@@ -1,5 +1,5 @@
 
-/* FastWell account & sync */
+/* FastFitWell account & sync */
 .fw-account-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 16px;padding:14px 17px;background:#fff;border:1px solid #e2eeea;border-radius:14px;color:#174d46}
 .fw-account-bar strong{font-size:13px}.fw-account-bar p{font-size:11px;margin:4px 0 0;color:#71847e;line-height:1.6}
 .fw-account-bar button,.fw-account-actions button{background:#f5fbf8;border:1px solid #cde9df;border-radius:9px;color:#0b8170;padding:9px 12px;font-size:12px;font-weight:750;cursor:pointer}
